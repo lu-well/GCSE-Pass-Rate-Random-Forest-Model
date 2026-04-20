@@ -1,0 +1,214 @@
+# import required libraries and modules
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+import sys
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import mean_absolute_percentage_error
+
+# upload data for all schools
+data = pd.read_csv(r"model data all schools.csv", index_col=False) # modify file path for csv upload
+# upload data without special schools
+data_slim = pd.read_csv(r"model data without special schools.csv", index_col=False) # modify file path for csv upload
+
+# specify input and target variables
+X = data[['Ofsted Average', 'Number of Pupils', '% Rate of Absence', '% FSM']]
+y = data['GCSE Pass Average %']
+
+# split into testing and training datasets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# create graphs to show comparison of whole dataset, training dataset and testing dataset
+x_all = data["% FSM"]
+y_all = data["% Rate of Absence"]
+sizes_all = data['Ofsted Average']*10
+colours_all = data["Number of Pupils"]
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x_all, y_all, c=colours_all, s=sizes_all, marker='o', alpha=0.5)
+
+ax.set_title("Whole Dataset")
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
+
+x_axis_train = X_train["% FSM"]
+y_axis_train = X_train["% Rate of Absence"]
+sizes_train = X_train['Ofsted Average']*10
+colours_train = X_train["Number of Pupils"]
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x_axis_train, y_axis_train, c=colours_train, s=sizes_train, marker='o', alpha=0.5)
+
+ax.set_title("Training Dataset")
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
+
+x_axis_test = X_test["% FSM"]
+y_axis_test = X_test["% Rate of Absence"]
+sizes_test = X_test['Ofsted Average']*10
+colours_test = X_test["Number of Pupils"]
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x_axis_test, y_axis_test, c=colours_test, s=sizes_test, marker='o', alpha=0.5)
+
+ax.set_title("Testing Dataset")
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
+
+# fit model
+try:
+    model = RandomForestRegressor(
+        n_estimators=100,  # number of trees
+        random_state=42,
+        n_jobs=-1
+    )
+    model.fit(X_train, y_train)
+except Exception as e:
+    print(f"Error training model: {e}")
+    sys.exit(1)
+
+# make predictions
+y_pred = model.predict(X_test)
+
+# evaluate using MSE and r^2 scores
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f"Model Performance:\nMSE: {mse:.2f}\nR²: {r2:.2f}")
+
+# download data as csv
+try:
+    results_df = X_test.copy()
+    results_df['Actual'] = y_test.values
+    results_df['Predicted'] = y_pred
+    results_df.to_csv(r"rand fore results all schools.csv", index=False) # modify file path for csv download
+    print("Predictions exported to 'rand fore results all schools.csv'")
+except Exception as e:
+    print(f"Error exporting CSV: {e}")
+    sys.exit(1)
+
+# Random Forest model without special schools
+
+# specify input and target variables
+X = data_slim[['Ofsted Average', 'Number of Pupils', '% Rate of Absence', '% FSM']]
+y = data_slim['GCSE Pass Average %']
+
+# split into testing and training datasets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# create graphs to show comparison of whole dataset, training dataset and testing dataset
+x_all = data_slim["% FSM"]
+y_all = data_slim["% Rate of Absence"]
+sizes_all = data_slim['Ofsted Average']*10
+colours_all = data_slim["Number of Pupils"]
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x_all, y_all, c=colours_all, s=sizes_all, marker='o', alpha=0.5)
+
+ax.set_title("Whole Dataset")
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
+
+x_axis_train = X_train["% FSM"]
+y_axis_train = X_train["% Rate of Absence"]
+sizes_train = X_train['Ofsted Average']*10
+colours_train = X_train["Number of Pupils"]
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x_axis_train, y_axis_train, c=colours_train, s=sizes_train, marker='o', alpha=0.5)
+
+ax.set_title("Training Dataset")
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
+
+x_axis_test = X_test["% FSM"]
+y_axis_test = X_test["% Rate of Absence"]
+sizes_test = X_test['Ofsted Average']*10
+colours_test = X_test["Number of Pupils"]
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x_axis_test, y_axis_test, c=colours_test, s=sizes_test, marker='o', alpha=0.5)
+
+ax.set_title("Testing Dataset")
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
+
+# fit model
+try:
+    model = RandomForestRegressor(
+        n_estimators=100,
+        oob_score=True,
+        bootstrap=True,
+        random_state=42,
+        n_jobs=-1
+    )
+    model.fit(X_train, y_train)
+except Exception as e:
+    print(f"Error training model: {e}")
+    sys.exit(1)
+
+# make predictions
+y_pred = model.predict(X_test)
+
+# evaluate with MSE and r^2 scores
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f"Model Performance:\nMSE: {mse:.2f}\nR²: {r2:.2f}")
+
+# find OOB RMSE score
+oob_preds = model.oob_prediction_
+oob_rmse = np.sqrt(mean_squared_error(y_train, oob_preds))
+print(f"OOB RMSE: {oob_rmse:.4f}")
+test_rmse = np.sqrt(mean_squared_error(y_test, model.predict(X_test)))
+print(f"Test RMSE: {test_rmse:.4f}")
+
+# find MAPE score
+mape_value = mean_absolute_percentage_error(y_test, y_pred)
+mape_percentage = mape_value * 100
+print(f"Mean Absolute Percentage Error (MAPE): {mape_percentage:.2f}%")
+
+# download data as csv
+try:
+    results_df = X_test.copy()
+    results_df['Actual'] = y_test.values
+    results_df['Predicted'] = y_pred
+    results_df.to_csv(r"rand fore results slim.csv", index=False) # modify file path for csv download
+    print("Predictions exported to 'rand fore results slim.csv'")
+except Exception as e:
+    print(f"Error exporting CSV: {e}")
+    sys.exit(1)
+
+# allow manual input of data into model which prints the prediction
+manual_data = {
+    'Ofsted Average': [1],
+    'Number of Pupils': [1500],
+    '% Rate of Absence': [2.03],
+    '% FSM': [2.8]
+}
+
+manual_dataframe = pd.DataFrame(manual_data)
+prediction = model.predict(manual_dataframe)
+print(f"The percentage of pupils passing GCSE mathematics is predicted to be {prediction}%")
