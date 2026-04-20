@@ -1,0 +1,12 @@
+pandas
+numpy
+plotly-express
+seaborn
+matplotlib
+seaborn
+scikit-learn
+scipy
+yellowbrick
+map_uk
+plotly
+geopandas
