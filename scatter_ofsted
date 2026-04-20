@@ -1,0 +1,54 @@
+# import required libraries and modules
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.lines import Line2D
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import Normalize
+import numpy as np
+
+# upload csv file
+data = pd.read_csv(r"master data csv.csv", index_col=False) # modify file path to upload csv
+
+# specify variables to be used
+x = data["Ofsted Average"]
+y = data["GCSE Pass Average %"]
+sizes = data['% Rate of Absence']*10
+colours = data["% FSM"]
+
+# create scatter graph and show plot
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x, y, c=colours, s=sizes, marker='h', alpha=0.5)
+
+color_var = np.linspace(0, 90, 20)  # Variable for colors
+
+norm = Normalize(vmin=color_var.min(), vmax=color_var.max())
+cbar = fig.colorbar(ScalarMappable(norm=norm, cmap='viridis'), ax=ax)
+cbar.set_label('% FSM')
+
+size_legend_values = [3, 15, 30]
+size_legend = [
+    Line2D(
+        [], [],
+        marker='h', color='w',
+        markerfacecolor='gray',
+        markersize=np.sqrt(s/np.pi)*7,
+        label=f'{s}'
+    )
+    for s in size_legend_values
+]
+legend2 = ax.legend(
+    handles=size_legend,
+    title="% Absence Rate",
+    labelspacing=1.2,
+    loc="upper right"
+)
+ax.add_artist(legend2)
+
+ax.set_title("GCSE Pass Average for each Ofsted Average Score")
+ax.set_xlabel('Ofsted Average Score')
+ax.set_ylabel('GCSE Pass Average %')
+plt.xticks(fontsize=8)
+plt.xticks(rotation=45, ha="right")
+
+plt.show()
